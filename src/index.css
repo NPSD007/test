@@ -1,0 +1,104 @@
+/* =====================================================
+   PAUSEnPAY — Design System
+   Aesthetic: Dark luxury fintech, editorial
+   Fonts: Syne (display) + DM Sans (body) + DM Mono
+   ===================================================== */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Core palette */
+  --void: #060608;
+  --ink: #0e0e14;
+  --ink-2: #14141e;
+  --ink-3: #1c1c2a;
+  --ink-4: #252535;
+  --surface: #1a1a28;
+  --surface-2: #22223a;
+  --border: rgba(255,255,255,0.07);
+  --border-bright: rgba(255,255,255,0.14);
+
+  /* Brand */
+  --violet: #7c6af7;
+  --violet-light: #a899ff;
+  --violet-dim: rgba(124,106,247,0.15);
+  --violet-glow: rgba(124,106,247,0.35);
+  --neon: #00e5c3;
+  --neon-dim: rgba(0,229,195,0.12);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,0.12);
+  --rose: #f43f5e;
+  --rose-dim: rgba(244,63,94,0.12);
+  --sage: #34d399;
+  --sage-dim: rgba(52,211,153,0.1);
+
+  /* Text */
+  --text-1: #f0eeff;
+  --text-2: #b4b0d4;
+  --text-3: #6e6a94;
+  --text-4: #3d3a5c;
+
+  /* Font stacks */
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+
+  /* Spacing */
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+}
+
+html, body {
+  background: var(--void);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb { background: var(--ink-4); border-radius: 2px; }
+
+/* Utility */
+.font-display { font-family: var(--font-display); }
+.font-mono { font-family: var(--font-mono); }
+.text-gradient {
+  background: linear-gradient(135deg, var(--violet-light), var(--neon));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass card */
+.glass {
+  background: rgba(26,26,40,0.7);
+  border: 0.5px solid var(--border-bright);
+  border-radius: var(--r-lg);
+  backdrop-filter: blur(12px);
+}
+
+/* Glow effects */
+.glow-violet { box-shadow: 0 0 40px var(--violet-glow), inset 0 1px 0 rgba(255,255,255,0.05); }
+.glow-neon { box-shadow: 0 0 30px rgba(0,229,195,0.25); }
+
+/* Noise texture overlay */
+.noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+button { cursor: pointer; border: none; background: none; font-family: var(--font-body); }
+a { text-decoration: none; color: inherit; }
