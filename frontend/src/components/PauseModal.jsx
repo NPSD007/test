@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useStore, getExplanations } from '../data/store'
+import { AlertTriangle, Pause, ShieldAlert, XCircle, Clock, Smartphone, Zap, Moon, Timer } from 'lucide-react'
 
 export default function PauseModal() {
-  const { pauseVisible, pauseMerchant, dismissPause, signals } = useStore()
+  const { pauseVisible, pauseMerchant, currentBalance, dismissPause, signals } = useStore()
   const [secs, setSecs] = useState(10)
   const [ready, setReady] = useState(false)
   const ref = useRef()
@@ -49,9 +50,11 @@ export default function PauseModal() {
 
         <div style={{ padding:'8px 24px 28px' }}>
           {/* Header */}
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
             <div>
-              <div style={{ fontSize:11, fontWeight:700, color:'#00E676', letterSpacing:'0.12em', marginBottom:6 }}>⏸ PAUSE GUARD ACTIVE</div>
+              <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:'#00E676', letterSpacing:'0.12em', marginBottom:6 }}>
+                <Pause size={14} color="var(--green, #00E676)" /> PAUSE GUARD ACTIVE
+              </div>
               <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700, lineHeight:1.1 }}>
                 Hold on a sec...
               </div>
@@ -62,6 +65,19 @@ export default function PauseModal() {
                 ₹{(pauseMerchant?.amount||2499).toLocaleString()}
               </div>
             </div>
+          </div>
+
+          {/* Balance Warning */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            background: 'var(--amber-dim, rgba(255, 184, 0, 0.08))',
+            border: '0.5px solid rgba(245,158,11,0.3)', padding: '12px 16px',
+            borderRadius: 'var(--r-md, 14px)', marginTop: '20px', marginBottom: '24px'
+          }}>
+            <AlertTriangle size={16} color="var(--amber, #FFB800)" />
+            <span style={{ color: 'var(--amber, #FFB800)', fontSize: '12px', fontFamily: 'var(--font-mono, monospace)', lineHeight: '1.4' }}>
+              WARNING: This purchase consumes {(( (pauseMerchant?.amount || 2499) / (currentBalance || 15000) ) * 100).toFixed(1)}% of your ₹{(currentBalance || 15000).toLocaleString()} liquid balance.
+            </span>
           </div>
 
           {/* Countdown ring */}
@@ -78,7 +94,7 @@ export default function PauseModal() {
               </svg>
               <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
                 {ready
-                  ? <span style={{ fontSize:40 }}>✓</span>
+                  ? <span style={{ fontSize:40 }}><XCircle size={48} color="#00E676" /></span>
                   : <>
                       <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:46, fontWeight:800, color:'#00E676', lineHeight:1 }}>{secs}</span>
                       <span style={{ fontSize:10, color:'#444', letterSpacing:'0.1em', marginTop:2 }}>BREATHE</span>
@@ -90,11 +106,16 @@ export default function PauseModal() {
 
           {/* XAI reasons */}
           <div style={{ background:'#111', borderRadius:16, padding:'16px', marginBottom:20 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:'#00E676', letterSpacing:'0.1em', marginBottom:12 }}>WHY YOU'RE BEING PAUSED</div>
-            {explanations.map((e, i) => (
+            <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:'#00E676', letterSpacing:'0.1em', marginBottom:12 }}>
+              <ShieldAlert size={14} color="var(--green, #00E676)" /> WHY YOU'RE BEING PAUSED
+            </div>
+            {explanations.map((e, i) => {
+              const IconMap = { Moon, Smartphone, Zap, Clock, Timer }
+              const IconComponent = IconMap[e.icon] || Zap
+              return (
               <div key={i} style={{ display:'flex', alignItems:'center', gap:10, marginBottom: i<explanations.length-1?12:0 }}>
-                <div style={{ width:34, height:34, borderRadius:10, background:'#1A1A1A', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0 }}>
-                  {e.icon}
+                <div style={{ width:34, height:34, borderRadius:10, background:'#1A1A1A', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <IconComponent size={20} color={e.col} />
                 </div>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:13, color:'#ccc' }}>{e.text}</div>
@@ -103,7 +124,8 @@ export default function PauseModal() {
                   </div>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Buttons */}
@@ -127,9 +149,9 @@ export default function PauseModal() {
               padding:'16px', borderRadius:16, fontSize:16, fontWeight:500, fontFamily:"'Inter',sans-serif",
               background:'transparent', color:'#00E676',
               border:'0.5px solid rgba(0,230,118,0.3)',
-              cursor:'pointer',
+              cursor:'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
             }}>
-              💡 Save to wishlist instead
+              <XCircle size={18} /> Save to wishlist instead
             </button>
           </div>
 

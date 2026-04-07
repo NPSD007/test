@@ -1,6 +1,7 @@
 import React from 'react'
 import { useStore, computeRiskScore, getExplanations } from '../data/store'
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer } from 'recharts'
+import { Clock, Smartphone, Shuffle, CreditCard, Moon } from 'lucide-react'
 
 export default function Insights() {
   const { signals, updateSignals } = useStore()
@@ -9,10 +10,10 @@ export default function Insights() {
   const riskColor = score>=70?'#FF4444':score>=40?'#FFB800':'#00E676'
 
   const sliders = [
-    { key:'hourOfDay', label:'Hour of day', icon:'🕐', min:0, max:23, fmt:v=>`${v}:00` },
-    { key:'appUsageMinutes', label:'Session length', icon:'📱', min:0, max:180, fmt:v=>`${v}m` },
-    { key:'appSwitchCount', label:'App switches', icon:'🔀', min:0, max:30, fmt:v=>`${v}×` },
-    { key:'txFrequencyLastHour', label:'Tx attempts', icon:'💳', min:0, max:10, fmt:v=>`${v}×` },
+    { key:'hourOfDay', label:'Hour of day', icon: <Clock size={16} />, min:0, max:23, fmt:v=>`${v}:00` },
+    { key:'appUsageMinutes', label:'Session length', icon: <Smartphone size={16} />, min:0, max:180, fmt:v=>`${v}m` },
+    { key:'appSwitchCount', label:'App switches', icon: <Shuffle size={16} />, min:0, max:30, fmt:v=>`${v}×` },
+    { key:'txFrequencyLastHour', label:'Tx attempts', icon: <CreditCard size={16} />, min:0, max:10, fmt:v=>`${v}×` },
   ]
 
   const radar = [
@@ -24,7 +25,7 @@ export default function Insights() {
   ]
 
   return (
-    <div className="screen" style={{ padding:'20px' }}>
+    <div className="screen" style={{ padding:'20px', paddingBottom: '120px' }}>
       <div className="label-green" style={{ marginBottom:8 }}>EXPLAINABLE AI</div>
       <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700, marginBottom:4 }}>Live Insights</div>
       <div style={{ fontSize:14, color:'#555', marginBottom:20 }}>Move sliders — watch AI respond in real-time</div>
@@ -76,7 +77,7 @@ export default function Insights() {
         {/* Late night toggle */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px', background:'#111', borderRadius:14 }}>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <span>🌙</span>
+            <span><Moon size={16} /></span>
             <span style={{ fontSize:14, color:'#ccc' }}>Late-night mode</span>
           </div>
           <button onClick={() => updateSignals({...signals, isLateNight:!signals.isLateNight})}
@@ -104,28 +105,6 @@ export default function Insights() {
           </RadarChart>
         </ResponsiveContainer>
       </div>
-
-      {/* SHAP */}
-      {explanations.length > 0 && (
-        <div style={{ background:'rgba(0,230,118,0.05)', border:'0.5px solid rgba(0,230,118,0.2)', borderRadius:20, padding:'20px' }}>
-          <div className="label-green" style={{ marginBottom:12 }}>SHAP EXPLANATION</div>
-          <div style={{ fontSize:14, color:'#888', marginBottom:12, lineHeight:1.6 }}>
-            Top factors driving your score right now:
-          </div>
-          {explanations.map((e,i) => (
-            <div key={i} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-              <span>{e.icon}</span>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:13, color:'#ccc' }}>{e.text}</div>
-                <div style={{ height:3, background:'#1A1A1A', borderRadius:2, marginTop:4 }}>
-                  <div style={{ height:'100%', width:`${e.weight*100}%`, background:e.col, borderRadius:2 }}/>
-                </div>
-              </div>
-              <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:13, fontWeight:700, color:e.col }}>+{Math.round(e.weight*30)}</span>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

@@ -1,17 +1,14 @@
 import React from 'react'
 import { useStore } from '../data/store'
+import { ShoppingBag } from 'lucide-react'
+import MyntraCart from '../components/MyntraCart'
 
 const merchants = [
-  { name:'Myntra', amount:2499, items:3, cat:'Fashion', emoji:'👗' },
-  { name:'Amazon', amount:5999, items:1, cat:'Electronics', emoji:'📦' },
-  { name:'Swiggy', amount:649, items:4, cat:'Food', emoji:'🍕' },
-  { name:'Meesho', amount:1299, items:5, cat:'Fashion', emoji:'🛍️' },
-  { name:'Nykaa', amount:3200, items:2, cat:'Beauty', emoji:'💄' },
-  { name:'Blinkit', amount:420, items:8, cat:'Grocery', emoji:'🛒' },
+  { name:'Myntra', amount:2499, items:3, cat:'Fashion', emoji: <ShoppingBag size={28} color="#00E676" /> },
 ]
 
 export default function PauseDemo() {
-  const { triggerPause, signals } = useStore()
+  const { setDemoView, signals, demoView } = useStore()
 
   function score(s) {
     let v=0; const h=s.hourOfDay
@@ -23,8 +20,12 @@ export default function PauseDemo() {
   const s = score(signals)
   const riskColor = s>=70?'#FF4444':s>=40?'#FFB800':'#00E676'
 
+  if (demoView === 'cart') {
+    return <MyntraCart />
+  }
+
   return (
-    <div className="screen" style={{ padding:'20px' }}>
+    <div className="screen" style={{ padding:'16px 20px', paddingBottom:'120px' }}>
       <div style={{ marginBottom:20 }}>
         <div className="label-green" style={{ marginBottom:8 }}>DEMO MODE</div>
         <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700 }}>
@@ -52,9 +53,12 @@ export default function PauseDemo() {
       </div>
 
       {/* Merchant grid */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+      <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
         {merchants.map((m,i) => (
-          <button key={i} onClick={() => triggerPause(m)} style={{
+          <button key={i} onClick={() => {
+            useStore.setState({ pauseMerchant: m })
+            setDemoView('cart')
+          }} style={{
             padding:'20px 16px', borderRadius:20,
             background:'#0A0A0A', border:'0.5px solid #1A1A1A',
             textAlign:'left', cursor:'pointer', transition:'all 0.15s',
@@ -65,7 +69,7 @@ export default function PauseDemo() {
             onMouseEnter={e => e.currentTarget.style.borderColor='#00E676'}
             onMouseLeave={e => e.currentTarget.style.borderColor='#1A1A1A'}
           >
-            <div style={{ fontSize:32, marginBottom:12 }}>{m.emoji}</div>
+            <div style={{ marginBottom:12, display:'flex' }}>{m.emoji}</div>
             <div style={{ fontSize:16, fontWeight:700, color:'#fff', marginBottom:2 }}>{m.name}</div>
             <div style={{ fontSize:12, color:'#555', marginBottom:12 }}>{m.cat}</div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>

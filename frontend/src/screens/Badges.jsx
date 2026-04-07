@@ -1,12 +1,13 @@
 import React from 'react'
+import { Flame, User, Moon, Bot, Trophy, Diamond } from 'lucide-react'
 
 const badges = [
-  { id:1, emoji:'🔥', title:'7-Day Streak', desc:'Completed all pauses', unlocked:true },
-  { id:2, emoji:'🧘', title:'Mindful Spender', desc:'Saved ₹10,000+', unlocked:true },
-  { id:3, emoji:'🌙', title:'Night Guardian', desc:'Stopped 5 late buys', unlocked:true },
-  { id:4, emoji:'🤖', title:'AI Partner', desc:'Model calibrated', unlocked:true },
-  { id:5, emoji:'🏆', title:'Iron Will', desc:'30-day streak', unlocked:false },
-  { id:6, emoji:'💎', title:'Diamond Saver', desc:'Saved ₹50,000+', unlocked:false },
+  { id:1, emoji: <Flame size={28} />, title:'7-Day Streak', desc:'Completed all pauses', unlocked:true },
+  { id:2, emoji: <User size={28} />, title:'Mindful Spender', desc:'Saved ₹10,000+', unlocked:true },
+  { id:3, emoji: <Moon size={28} />, title:'Night Guardian', desc:'Stopped 5 late buys', unlocked:true },
+  { id:4, emoji: <Bot size={28} />, title:'AI Partner', desc:'Model calibrated', unlocked:true },
+  { id:5, emoji: <Trophy size={28} />, title:'Iron Will', desc:'30-day streak', unlocked:false },
+  { id:6, emoji: <Diamond size={28} />, title:'Diamond Saver', desc:'Saved ₹50,000+', unlocked:false },
 ]
 
 const leaderboard = [
@@ -26,14 +27,14 @@ const reportCard = [
 
 export default function Badges() {
   return (
-    <div className="screen" style={{ padding:'20px' }}>
+    <div className="screen" style={{ padding:'16px 20px', paddingBottom:'120px' }}>
       <div className="label-green" style={{ marginBottom:8 }}>GAMIFICATION</div>
       <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700, marginBottom:20 }}>
         Achievements
       </div>
 
       {/* Badge grid */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:24 }}>
+      <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:24 }}>
         {badges.map(b => (
           <div key={b.id} style={{
             padding:'18px 12px', borderRadius:18, textAlign:'center',
@@ -49,7 +50,7 @@ export default function Badges() {
             {!b.unlocked && (
               <div style={{ position:'absolute', top:8, right:8, fontSize:10 }}>🔒</div>
             )}
-            <div style={{ fontSize:30, marginBottom:8 }}>{b.emoji}</div>
+            <div style={{ marginBottom:8, color: b.unlocked ? '#fff' : '#555', display: 'flex', justifyContent: 'center' }}>{b.emoji}</div>
             <div style={{ fontSize:12, fontWeight:700, color: b.unlocked?'#00E676':'#555', marginBottom:4 }}>
               {b.title}
             </div>
@@ -83,48 +84,6 @@ export default function Badges() {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Leaderboard */}
-      <div style={{ background:'#0A0A0A', border:'0.5px solid #1A1A1A', borderRadius:20, padding:'20px' }}>
-        <div className="label-green" style={{ marginBottom:16 }}>ANONYMOUS LEADERBOARD</div>
-        {leaderboard.map((u,i) => (
-          <div key={i} style={{
-            display:'flex', alignItems:'center', gap:12,
-            padding:'14px 16px', borderRadius:14, marginBottom:8,
-            background: u.isYou ? 'rgba(0,230,118,0.06)' : 'transparent',
-            border: `0.5px solid ${u.isYou ? 'rgba(0,230,118,0.3)' : '#111'}`,
-          }}>
-            <div style={{
-              fontFamily:"'Space Grotesk',sans-serif", fontSize:18, fontWeight:800, width:24, textAlign:'center',
-              color: i===0?'#FFB800':i===1?'#888':i===2?'#cd7f32':'#444',
-            }}>{u.rank}</div>
-            <span style={{ fontSize:20 }}>{u.badge}</span>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:14, fontWeight: u.isYou?700:400, color: u.isYou?'#00E676':'#fff' }}>
-                {u.name}
-              </div>
-              <div style={{ fontSize:11, color:'#444', marginTop:2 }}>🔥 {u.streak} day streak</div>
-            </div>
-            <div style={{ textAlign:'right' }}>
-              <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:15, fontWeight:700, color:'#00E676' }}>
-                ₹{u.saved.toLocaleString()}
-              </div>
-              <div style={{ fontSize:10, color:'#444' }}>saved</div>
-            </div>
-          </div>
-        ))}
-
-        <div style={{
-          marginTop:12, padding:'14px', borderRadius:14,
-          background:'rgba(0,230,118,0.06)', border:'0.5px solid rgba(0,230,118,0.2)',
-          textAlign:'center',
-        }}>
-          <div style={{ fontSize:13, color:'#00E676', marginBottom:4 }}>
-            🎯 Save ₹11,380 more to reach rank 3
-          </div>
-          <div style={{ fontSize:11, color:'#444' }}>All names anonymized · data stays on your device</div>
-        </div>
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 import React from 'react'
 import { useStore, savingsHistory } from '../data/store'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { Smartphone, Flame } from 'lucide-react'
 
 export default function Savings() {
   const { totalSaved, streak, monthlyGoal } = useStore()
@@ -8,13 +9,11 @@ export default function Savings() {
   const pct = Math.min(Math.round((totalSaved / (goal * 3)) * 100), 100)
 
   const goals = [
-    { label:'New iPhone 16', target:79999, emoji:'📱' },
-    { label:'Goa Trip', target:35000, emoji:'✈️' },
-    { label:'Emergency Fund', target:100000, emoji:'🛡️' },
+    { label:'New iPhone 16', target:79999, emoji: <Smartphone size={28} color="#fff" /> },
   ]
 
   return (
-    <div className="screen" style={{ padding:'20px' }}>
+    <div className="screen" style={{ padding:'16px 20px', paddingBottom: '120px' }}>
       <div className="label-green" style={{ marginBottom:8 }}>SAVINGS TRACKER</div>
       <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700, marginBottom:20 }}>
         Your Money Saved
@@ -27,9 +26,11 @@ export default function Savings() {
         <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:52, fontWeight:800, color:'#00E676', lineHeight:1 }}>
           ₹{totalSaved.toLocaleString()}
         </div>
-        <div style={{ fontSize:14, color:'#555', marginTop:8 }}>🔥 {streak}-day mindful streak</div>
+        <div style={{ fontSize:14, color:'#555', marginTop:8, display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+          <Flame size={16} color="#FFB800" /> {streak}-day mindful streak
+        </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16, marginTop:24, paddingTop:20, borderTop:'0.5px solid #1A1A1A' }}>
+        <div style={{ display:'flex', flexDirection:'column', gap:16, marginTop:24, paddingTop:20, borderTop:'0.5px solid #1A1A1A' }}>
           {[{l:'Pauses',v:'47'},{l:'Override rate',v:'23%'},{l:'Days active',v:'63'}].map((s,i)=>(
             <div key={i}>
               <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:22, fontWeight:700, color:'#fff' }}>{s.v}</div>
@@ -81,7 +82,7 @@ export default function Savings() {
           <div key={i} style={{ background:'#0A0A0A', border:'0.5px solid #1A1A1A', borderRadius:18, padding:'18px', marginBottom:10 }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
               <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <span style={{ fontSize:28 }}>{g.emoji}</span>
+                <span style={{ display:'flex' }}>{g.emoji}</span>
                 <div>
                   <div style={{ fontSize:15, fontWeight:700 }}>{g.label}</div>
                   <div style={{ fontSize:12, color:'#555', marginTop:2 }}>Target: ₹{g.target.toLocaleString()}</div>

@@ -3,6 +3,7 @@ import { useStore, getExplanations, recentPauses } from '../data/store'
 import RiskGauge from '../components/RiskGauge'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { savingsHistory } from '../data/store'
+import { User, Flame, ShoppingBag, Pizza, Smartphone, Pause, Moon, Zap, Timer, PauseCircle } from 'lucide-react'
 
 const Tip = ({ children }) => (
   <div style={{ background:'#0A0A0A', border:'0.5px solid #1A1A1A', borderRadius:16, padding:'16px' }}>
@@ -10,8 +11,10 @@ const Tip = ({ children }) => (
   </div>
 )
 
+const IconMap = { Moon, Smartphone, Zap, Timer }
+
 export default function Dashboard() {
-  const { signals, totalSaved, savedToday, streak, pausesToday, triggerPause } = useStore()
+  const { signals, totalSaved, savedToday, streak, pausesToday, triggerPause, currentBalance, savingsGoal } = useStore()
   const score = useStore(s => computeRiskScoreLocal(s.signals))
   const explanations = getExplanations(signals)
 
@@ -30,15 +33,16 @@ export default function Dashboard() {
   const riskColor = score >= 70 ? '#FF4444' : score >= 40 ? '#FFB800' : '#00E676'
 
   return (
-    <div className="screen" style={{ background:'#000' }}>
+    <div className="screen" style={{ background:'#000', paddingBottom:'120px' }}>
       {/* Header */}
       <div style={{ padding:'20px 20px 0', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
         <div>
-          <div style={{ fontSize:13, color:'#555', marginBottom:2 }}>Good evening 👋</div>
-          <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:22, fontWeight:700 }}>Arjun Sharma</div>
+          <div style={{ fontSize:13, color:'#555', marginBottom:2 }}>Current Balance</div>
+          <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700 }}>₹{currentBalance.toLocaleString()}</div>
         </div>
-        <div style={{ width:42, height:42, borderRadius:'50%', background:'#111', border:'0.5px solid #222', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>
-          🧘
+        <div style={{ textAlign:'right' }}>
+          <div style={{ fontSize:11, color:'#555', fontWeight:600, letterSpacing:'0.08em', marginBottom:2 }}>SAVINGS GOAL</div>
+          <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:18, fontWeight:700, color:'#00E676' }}>₹{savingsGoal.toLocaleString()}</div>
         </div>
       </div>
 
@@ -51,24 +55,26 @@ export default function Dashboard() {
         {explanations.length > 0 && (
           <div style={{ marginTop:20, borderTop:'0.5px solid #1A1A1A', paddingTop:16, textAlign:'left' }}>
             <div style={{ fontSize:11, color:'#444', fontWeight:600, letterSpacing:'0.1em', marginBottom:12 }}>WHY THIS SCORE</div>
-            {explanations.map((e, i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-                <span style={{ fontSize:16 }}>{e.icon}</span>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:13, color:'#ccc', marginBottom:3 }}>{e.text}</div>
-                  <div style={{ height:3, background:'#1A1A1A', borderRadius:2 }}>
-                    <div style={{ height:'100%', width:`${e.weight*100}%`, background:e.col, borderRadius:2, boxShadow:`0 0 6px ${e.col}60`, transition:'width 1s ease' }}/>
+            {explanations.map((e, i) => {
+              return (
+                <div key={i} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                  <span style={{ fontSize: 16 }}>{React.createElement(IconMap[e.icon] || Timer, { size: 16, color: e.col })}</span>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, color:'#ccc', marginBottom:3 }}>{e.text}</div>
+                    <div style={{ height:3, background:'#1A1A1A', borderRadius:2 }}>
+                      <div style={{ height:'100%', width:`${e.weight*100}%`, background:e.col, borderRadius:2, boxShadow:`0 0 6px ${e.col}60`, transition:'width 1s ease' }}/>
+                    </div>
                   </div>
+                  <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:11, color:'#444' }}>{Math.round(e.weight*100)}%</span>
                 </div>
-                <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:11, color:'#444' }}>{Math.round(e.weight*100)}%</span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
 
       {/* Stats row */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, margin:'12px 20px 0' }}>
+      <div style={{ display:'flex', flexDirection:'column', gap:10, margin:'12px 20px 0' }}>
         <div style={{ background:'#0A0A0A', border:'0.5px solid #1A1A1A', borderRadius:18, padding:'18px 16px' }}>
           <div style={{ fontSize:11, color:'#555', fontWeight:600, letterSpacing:'0.08em', marginBottom:6 }}>SAVED TODAY</div>
           <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700, color:'#00E676' }}>₹{savedToday.toLocaleString()}</div>
@@ -77,7 +83,12 @@ export default function Dashboard() {
         <div style={{ background:'#0A0A0A', border:'0.5px solid #1A1A1A', borderRadius:18, padding:'18px 16px' }}>
           <div style={{ fontSize:11, color:'#555', fontWeight:600, letterSpacing:'0.08em', marginBottom:6 }}>TOTAL SAVED</div>
           <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700, color:'#fff' }}>₹{totalSaved.toLocaleString()}</div>
-          <div style={{ fontSize:12, color:'#444', marginTop:4 }}>🔥 {streak}-day streak</div>
+          <div style={{ marginTop: 8, height: 4, background: '#1A1A1A', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${Math.min((totalSaved / (savingsGoal || 1)) * 100, 100)}%`, background: '#00E676' }} />
+          </div>
+          <div style={{ fontSize:12, color:'#444', marginTop:6, display:'flex', alignItems:'center', gap:4 }}>
+             <Flame size={14} color="#FFB800" /> {streak}-day streak ({Math.round((totalSaved / (savingsGoal || 1)) * 100)}% of goal)
+          </div>
         </div>
       </div>
 
@@ -104,8 +115,8 @@ export default function Dashboard() {
 
       {/* Demo trigger */}
       <div style={{ margin:'12px 20px 0' }}>
-        <button className="btn-green" onClick={() => triggerPause({ name:'Myntra', amount:2499, items:3 })}>
-          ⏸ Trigger Pause Demo
+        <button className="btn-green" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8 }} onClick={() => triggerPause({ name:'Myntra', amount:2499, items:3 })}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><PauseCircle size={18} /> Demo Pause</div>
         </button>
       </div>
 
@@ -114,8 +125,8 @@ export default function Dashboard() {
         <div style={{ fontSize:11, color:'#555', fontWeight:600, letterSpacing:'0.08em', marginBottom:12 }}>RECENT PAUSES</div>
         {recentPauses.map(p => (
           <div key={p.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 0', borderBottom:'0.5px solid #111' }}>
-            <div style={{ width:40, height:40, borderRadius:12, background:'#111', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, flexShrink:0 }}>
-              {p.category==='Fashion'?'👗':p.category==='Food'?'🍕':p.category==='Gadgets'?'📱':'🛍️'}
+            <div style={{ width:40, height:40, borderRadius:12, background:'#111', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              {p.category==='Fashion'?<ShoppingBag size={20} color="#fff"/>:p.category==='Food'?<Pizza size={20} color="#fff"/>:p.category==='Gadgets'?<Smartphone size={20} color="#fff"/>:<ShoppingBag size={20} color="#fff"/>}
             </div>
             <div style={{ flex:1 }}>
               <div style={{ fontSize:14, fontWeight:600 }}>{p.merchant}</div>
