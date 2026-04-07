@@ -3,224 +3,138 @@ import { useStore, getExplanations } from '../data/store'
 
 export default function PauseModal() {
   const { pauseVisible, pauseMerchant, dismissPause, signals } = useStore()
-  const [seconds, setSeconds] = useState(10)
-  const [phase, setPhase] = useState('counting') // counting | ready | dismissed
-  const [breathPhase, setBreathPhase] = useState(0) // for breathing animation
-  const intervalRef = useRef(null)
-  const breathRef = useRef(null)
+  const [secs, setSecs] = useState(10)
+  const [ready, setReady] = useState(false)
+  const ref = useRef()
 
   const explanations = getExplanations(signals)
-  const colorMap = { violet: 'var(--violet)', amber: 'var(--amber)', rose: 'var(--rose)', neon: 'var(--neon)' }
 
   useEffect(() => {
-    if (!pauseVisible) {
-      setSeconds(10)
-      setPhase('counting')
-      clearInterval(intervalRef.current)
-      clearInterval(breathRef.current)
-      return
-    }
-
-    // Countdown
-    intervalRef.current = setInterval(() => {
-      setSeconds(s => {
-        if (s <= 1) {
-          clearInterval(intervalRef.current)
-          setPhase('ready')
-          return 0
-        }
-        return s - 1
-      })
+    if (!pauseVisible) { setSecs(10); setReady(false); clearInterval(ref.current); return }
+    setSecs(10); setReady(false)
+    ref.current = setInterval(() => {
+      setSecs(s => { if (s <= 1) { setReady(true); clearInterval(ref.current); return 0 } return s - 1 })
     }, 1000)
-
-    // Breathing animation cycle
-    let b = 0
-    breathRef.current = setInterval(() => {
-      b = (b + 1) % 4
-      setBreathPhase(b)
-    }, 1000)
-
-    return () => {
-      clearInterval(intervalRef.current)
-      clearInterval(breathRef.current)
-    }
+    return () => clearInterval(ref.current)
   }, [pauseVisible])
 
   if (!pauseVisible) return null
 
-  const progress = ((10 - seconds) / 10) * 100
-  const r = 58
-  const circ = 2 * Math.PI * r
-  const strokeDash = circ - (circ * progress) / 100
-
-  const breathSize = 1 + (breathPhase % 2 === 0 ? 0.06 : 0)
+  const pct = ((10 - secs) / 10) * 100
+  const R = 52, circ = 2 * Math.PI * R
+  const dash = circ - (circ * pct / 100)
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(6,6,8,0.88)',
-      backdropFilter: 'blur(16px)',
+      position:'fixed', inset:0, zIndex:1000,
+      background:'rgba(0,0,0,0.95)',
+      display:'flex', alignItems:'flex-end',
+      backdropFilter:'blur(8px)',
     }}>
+      <style>{`@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}`}</style>
       <div style={{
-        width: 480, borderRadius: 28,
-        background: 'var(--ink-2)',
-        border: '0.5px solid var(--border-bright)',
-        boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03)',
-        overflow: 'hidden',
-        animation: 'slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+        width:'100%', maxWidth:'430px', margin:'0 auto',
+        background:'#0A0A0A', borderRadius:'28px 28px 0 0',
+        border:'0.5px solid #1A1A1A', borderBottom:'none',
+        animation:'sheetUp 0.35s cubic-bezier(0.34,1.2,0.64,1)',
+        paddingBottom:'env(safe-area-inset-bottom)',
       }}>
-        <style>{`
-          @keyframes slideUp {
-            from { transform: translateY(30px) scale(0.96); opacity: 0; }
-            to { transform: translateY(0) scale(1); opacity: 1; }
-          }
-          @keyframes pulseRing {
-            0%, 100% { opacity: 0.15; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(1.08); }
-          }
-        `}</style>
+        {/* Green top accent */}
+        <div style={{ height:3, background:'linear-gradient(90deg,#00E676,#00C853)', borderRadius:'28px 28px 0 0' }}/>
 
-        {/* Top violet accent bar */}
-        <div style={{ height: 3, background: 'linear-gradient(90deg, var(--violet), var(--neon))' }} />
+        {/* Handle */}
+        <div style={{ display:'flex', justifyContent:'center', padding:'12px 0 8px' }}>
+          <div style={{ width:36, height:4, borderRadius:2, background:'#222' }}/>
+        </div>
 
-        <div style={{ padding: '32px 36px' }}>
+        <div style={{ padding:'8px 24px 28px' }}>
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24 }}>
             <div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-4)', letterSpacing: '0.14em', marginBottom: 6 }}>
-                IMPULSE GUARD ACTIVATED
-              </div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em' }}>
+              <div style={{ fontSize:11, fontWeight:700, color:'#00E676', letterSpacing:'0.12em', marginBottom:6 }}>⏸ PAUSE GUARD ACTIVE</div>
+              <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700, lineHeight:1.1 }}>
                 Hold on a sec...
               </div>
             </div>
-            {/* Merchant chip */}
-            <div style={{
-              padding: '8px 16px', borderRadius: 12,
-              background: 'rgba(255,255,255,0.04)', border: '0.5px solid var(--border)',
-              textAlign: 'right',
-            }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{pauseMerchant?.name || 'Myntra'}</div>
-              <div style={{ fontSize: 13, color: 'var(--neon)', fontFamily: 'var(--font-mono)' }}>
-                ₹{(pauseMerchant?.amount || 2499).toLocaleString()}
+            <div style={{ textAlign:'right', background:'#111', borderRadius:12, padding:'10px 14px' }}>
+              <div style={{ fontSize:15, fontWeight:700 }}>{pauseMerchant?.name||'Myntra'}</div>
+              <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:18, fontWeight:700, color:'#00E676' }}>
+                ₹{(pauseMerchant?.amount||2499).toLocaleString()}
               </div>
             </div>
           </div>
 
-          {/* Countdown circle */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
-            <div style={{ position: 'relative', width: 140, height: 140 }}>
-              {/* Pulse rings */}
-              {phase === 'counting' && [1, 2].map(i => (
-                <div key={i} style={{
-                  position: 'absolute', inset: i * -16,
-                  borderRadius: '50%',
-                  border: '1px solid var(--violet)',
-                  animation: `pulseRing ${1.5 + i * 0.5}s ease-in-out infinite ${i * 0.4}s`,
-                }} />
-              ))}
-
-              <svg width={140} height={140} style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx={70} cy={70} r={r} fill="none" stroke="rgba(124,106,247,0.12)" strokeWidth={8} />
-                <circle cx={70} cy={70} r={r} fill="none"
-                  stroke={phase === 'ready' ? 'var(--neon)' : 'var(--violet)'}
-                  strokeWidth={8} strokeLinecap="round"
-                  strokeDasharray={circ} strokeDashoffset={strokeDash}
-                  style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.4s ease', filter: `drop-shadow(0 0 8px ${phase === 'ready' ? 'var(--neon)' : 'var(--violet)'})` }}
+          {/* Countdown ring */}
+          <div style={{ display:'flex', justifyContent:'center', marginBottom:24 }}>
+            <div style={{ position:'relative', width:130, height:130 }}>
+              <svg width={130} height={130} style={{transform:'rotate(-90deg)'}}>
+                <circle cx={65} cy={65} r={R} fill="none" stroke="#1A1A1A" strokeWidth={10}/>
+                <circle cx={65} cy={65} r={R} fill="none"
+                  stroke={ready?'#00E676':'#00E676'}
+                  strokeWidth={10} strokeLinecap="round"
+                  strokeDasharray={circ} strokeDashoffset={dash}
+                  style={{transition:'stroke-dashoffset 1s linear', filter:'drop-shadow(0 0 10px #00E67680)'}}
                 />
               </svg>
-
-              <div style={{
-                position: 'absolute', inset: 0, display: 'flex',
-                flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              }}>
-                {phase === 'counting' ? (
-                  <>
-                    <span style={{
-                      fontFamily: 'var(--font-display)', fontSize: 48, fontWeight: 800,
-                      color: 'var(--violet-light)', lineHeight: 1,
-                      transform: `scale(${breathSize})`, transition: 'transform 0.8s ease',
-                    }}>{seconds}</span>
-                    <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-4)', letterSpacing: '0.1em', marginTop: 4 }}>BREATHE</span>
-                  </>
-                ) : (
-                  <span style={{ fontSize: 36 }}>✓</span>
-                )}
+              <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+                {ready
+                  ? <span style={{ fontSize:40 }}>✓</span>
+                  : <>
+                      <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:46, fontWeight:800, color:'#00E676', lineHeight:1 }}>{secs}</span>
+                      <span style={{ fontSize:10, color:'#444', letterSpacing:'0.1em', marginTop:2 }}>BREATHE</span>
+                    </>
+                }
               </div>
             </div>
           </div>
 
-          {/* Why you're being paused */}
-          <div style={{
-            marginBottom: 20, padding: '16px 18px', borderRadius: 'var(--r-md)',
-            background: 'var(--violet-dim)', border: '0.5px solid rgba(124,106,247,0.25)',
-          }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--violet-light)', letterSpacing: '0.12em', marginBottom: 12 }}>
-              WHY YOU'RE BEING PAUSED — AI ANALYSIS
-            </div>
+          {/* XAI reasons */}
+          <div style={{ background:'#111', borderRadius:16, padding:'16px', marginBottom:20 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'#00E676', letterSpacing:'0.1em', marginBottom:12 }}>WHY YOU'RE BEING PAUSED</div>
             {explanations.map((e, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: i < explanations.length - 1 ? 10 : 0 }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: 8, fontSize: 16,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'rgba(255,255,255,0.05)', flexShrink: 0,
-                }}>{e.icon}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{e.text}</div>
-                  <div style={{ height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 2, marginTop: 5 }}>
-                    <div style={{
-                      height: '100%', width: `${e.weight * 100}%`, borderRadius: 2,
-                      background: colorMap[e.color], boxShadow: `0 0 4px ${colorMap[e.color]}`,
-                      transition: 'width 1s ease',
-                    }} />
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:10, marginBottom: i<explanations.length-1?12:0 }}>
+                <div style={{ width:34, height:34, borderRadius:10, background:'#1A1A1A', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0 }}>
+                  {e.icon}
+                </div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:13, color:'#ccc' }}>{e.text}</div>
+                  <div style={{ height:3, background:'#1A1A1A', borderRadius:2, marginTop:6 }}>
+                    <div style={{ height:'100%', width:`${e.weight*100}%`, background:e.col, borderRadius:2, boxShadow:`0 0 6px ${e.col}` }}/>
                   </div>
                 </div>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-3)', minWidth: 28, textAlign: 'right' }}>
-                  +{Math.round(e.weight * 30)}
-                </span>
               </div>
             ))}
           </div>
 
-          {/* Action buttons */}
-          <div style={{ display: 'grid', gap: 10 }}>
+          {/* Buttons */}
+          <div style={{ display:'grid', gap:10 }}>
             <button
-              disabled={phase === 'counting'}
+              disabled={!ready}
               onClick={dismissPause}
               style={{
-                padding: '14px', borderRadius: 'var(--r-md)',
-                background: phase === 'ready' ? 'var(--violet)' : 'rgba(255,255,255,0.04)',
-                color: phase === 'ready' ? '#fff' : 'var(--text-4)',
-                fontSize: 15, fontWeight: 600, fontFamily: 'var(--font-body)',
-                border: `0.5px solid ${phase === 'ready' ? 'var(--violet)' : 'var(--border)'}`,
-                cursor: phase === 'ready' ? 'pointer' : 'default',
-                transition: 'all 0.4s ease',
-                boxShadow: phase === 'ready' ? '0 0 24px var(--violet-glow)' : 'none',
+                padding:'17px', borderRadius:16, fontSize:16, fontWeight:700, fontFamily:"'Inter',sans-serif",
+                background: ready ? '#00E676' : '#111',
+                color: ready ? '#000' : '#333',
+                border: `0.5px solid ${ready ? '#00E676' : '#222'}`,
+                cursor: ready ? 'pointer' : 'default',
+                transition:'all 0.4s ease',
+                boxShadow: ready ? '0 0 24px rgba(0,230,118,0.3)' : 'none',
               }}
             >
-              {phase === 'counting' ? `Wait ${seconds}s to proceed...` : `Proceed with payment →`}
+              {ready ? 'Proceed to pay →' : `Wait ${secs}s to unlock...`}
             </button>
-            <button
-              onClick={dismissPause}
-              style={{
-                padding: '14px', borderRadius: 'var(--r-md)',
-                background: 'var(--neon-dim)',
-                color: 'var(--neon)', fontSize: 15, fontWeight: 500,
-                fontFamily: 'var(--font-body)',
-                border: '0.5px solid rgba(0,229,195,0.25)',
-                cursor: 'pointer', transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,195,0.2)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'var(--neon-dim)'}
-            >
+            <button onClick={dismissPause} style={{
+              padding:'16px', borderRadius:16, fontSize:16, fontWeight:500, fontFamily:"'Inter',sans-serif",
+              background:'transparent', color:'#00E676',
+              border:'0.5px solid rgba(0,230,118,0.3)',
+              cursor:'pointer',
+            }}>
               💡 Save to wishlist instead
             </button>
           </div>
 
-          {/* Tip */}
-          <div style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: 'var(--text-4)', fontStyle: 'italic' }}>
-            Research shows 10-second delays reduce impulse spending by 47%
+          <div style={{ textAlign:'center', marginTop:16, fontSize:11, color:'#333' }}>
+            10-second delays reduce impulse spending by 47% · AI Model v2.1
           </div>
         </div>
       </div>

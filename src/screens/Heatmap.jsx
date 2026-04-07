@@ -1,133 +1,115 @@
 import React, { useState } from 'react'
 import { useStore } from '../data/store'
 
-const HOURS = Array.from({ length: 24 }, (_, i) => i)
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+const HOURS=Array.from({length:24},(_,i)=>i)
 
-const riskColor = (v) => {
-  if (v < 0.2) return `rgba(52,211,153,${0.15 + v * 0.5})`
-  if (v < 0.45) return `rgba(245,158,11,${0.2 + v * 0.5})`
-  if (v < 0.7) return `rgba(124,106,247,${0.3 + v * 0.4})`
-  return `rgba(244,63,94,${0.4 + v * 0.4})`
+const rCol = v => {
+  if(v<0.2) return `rgba(0,230,118,${0.15+v})`
+  if(v<0.5) return `rgba(255,184,0,${0.2+v*0.5})`
+  return `rgba(255,68,68,${0.3+v*0.5})`
 }
 
 export default function Heatmap() {
   const { heatmapData } = useStore()
-  const [hovered, setHovered] = useState(null)
-
-  const cellFor = (day, hour) =>
-    heatmapData.find(d => d.day === day && d.hour === hour)
-
-  const insights = [
-    { icon: '🌙', title: 'Peak risk window', desc: '10 PM – 1 AM every night', color: 'var(--rose)', bg: 'var(--rose-dim)' },
-    { icon: '☀️', title: 'Safest window', desc: '7 AM – 11 AM (avg score: 18)', color: 'var(--sage)', bg: 'var(--sage-dim)' },
-    { icon: '📅', title: 'Riskiest day', desc: 'Saturday nights (score peaks at 94)', color: 'var(--amber)', bg: 'var(--amber-dim)' },
-    { icon: '📱', title: 'Trigger pattern', desc: 'Social → Shopping in 87% of cases', color: 'var(--violet)', bg: 'var(--violet-dim)' },
-  ]
+  const [hov, setHov] = useState(null)
+  const cell = (d,h) => heatmapData.find(x=>x.day===d&&x.hour===h)
 
   return (
-    <div style={{ padding: '32px 36px', flex: 1, overflowY: 'auto' }}>
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 6 }}>
-          Trigger <span className="text-gradient">Heatmap</span>
-        </div>
-        <div style={{ color: 'var(--text-3)', fontSize: 14 }}>
-          Your impulse risk patterns across time — 7 days × 24 hours
-        </div>
-      </div>
+    <div className="screen" style={{ padding:'20px' }}>
+      <div className="label-green" style={{ marginBottom:8 }}>RISK PATTERNS</div>
+      <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700, marginBottom:4 }}>Trigger Heatmap</div>
+      <div style={{ fontSize:14, color:'#555', marginBottom:20 }}>Your high-risk spending windows</div>
 
-      {/* Heatmap grid */}
-      <div className="glass" style={{ padding: '24px 28px', marginBottom: 24 }}>
-        <div style={{ display: 'flex', gap: 12 }}>
-          {/* Day labels */}
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', paddingTop: 28 }}>
-            {DAYS.map(d => (
-              <div key={d} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-4)', width: 28, textAlign: 'right', lineHeight: '22px' }}>{d}</div>
-            ))}
-          </div>
-
-          <div style={{ flex: 1 }}>
-            {/* Hour labels */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(24, 1fr)', marginBottom: 6, paddingRight: 1 }}>
-              {HOURS.map(h => (
-                <div key={h} style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: h % 6 === 0 ? 'var(--text-3)' : 'transparent', textAlign: 'center' }}>
-                  {h === 0 ? '12a' : h === 12 ? '12p' : h < 12 ? `${h}a` : `${h - 12}p`}
-                </div>
-              ))}
+      {/* Heatmap */}
+      <div style={{ background:'#0A0A0A', border:'0.5px solid #1A1A1A', borderRadius:20, padding:'16px 12px', marginBottom:16 }}>
+        {/* Hour labels */}
+        <div style={{ display:'flex', marginLeft:34, marginBottom:6 }}>
+          {[0,6,12,18,23].map(h => (
+            <div key={h} style={{ fontSize:9, color:'#444', flex: h===23?1:'', width: h<23?`${(6/24)*100}%`:'' }}>
+              {h===0?'12a':h===6?'6a':h===12?'12p':h===18?'6p':'11p'}
             </div>
-
-            {/* Grid */}
-            {DAYS.map(day => (
-              <div key={day} style={{ display: 'grid', gridTemplateColumns: 'repeat(24, 1fr)', gap: 3, marginBottom: 3 }}>
-                {HOURS.map(hour => {
-                  const cell = cellFor(day, hour)
-                  const v = cell?.risk || 0
-                  const isHovered = hovered?.day === day && hovered?.hour === hour
-                  return (
-                    <div
-                      key={hour}
-                      onMouseEnter={() => setHovered({ day, hour, risk: v })}
-                      onMouseLeave={() => setHovered(null)}
-                      style={{
-                        height: 22, borderRadius: 4,
-                        background: riskColor(v),
-                        border: isHovered ? '1px solid rgba(255,255,255,0.5)' : '1px solid transparent',
-                        transition: 'transform 0.1s, border-color 0.1s',
-                        transform: isHovered ? 'scale(1.4)' : 'scale(1)',
-                        cursor: 'default',
-                        position: 'relative',
-                        zIndex: isHovered ? 10 : 1,
-                      }}
-                    />
-                  )
-                })}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Tooltip */}
-        {hovered && (
-          <div style={{
-            marginTop: 12, padding: '8px 14px', borderRadius: 10,
-            background: 'rgba(255,255,255,0.04)', border: '0.5px solid var(--border-bright)',
-            display: 'flex', gap: 20, alignItems: 'center',
-          }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-3)' }}>
-              {hovered.day} {hovered.hour}:00
-            </span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-2)' }}>
-              Risk: <span style={{ color: riskColor(1) }}>{Math.round(hovered.risk * 100)}</span>/100
-            </span>
-            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-              {hovered.risk >= 0.7 ? '⚠️ High impulse zone' : hovered.risk >= 0.4 ? '⚡ Elevated risk' : '✓ Safe spending window'}
-            </span>
-          </div>
-        )}
-
-        {/* Legend */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16 }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-4)' }}>LOW RISK</span>
-          {[0.05, 0.2, 0.4, 0.6, 0.8, 0.95].map(v => (
-            <div key={v} style={{ width: 24, height: 14, borderRadius: 3, background: riskColor(v) }} />
           ))}
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-4)' }}>HIGH RISK</span>
         </div>
-      </div>
 
-      {/* Insight cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-        {insights.map((ins, i) => (
-          <div key={i} style={{
-            padding: '18px 20px', borderRadius: 'var(--r-lg)',
-            background: ins.bg, border: `0.5px solid ${ins.color}30`,
-          }}>
-            <span style={{ fontSize: 24, display: 'block', marginBottom: 10 }}>{ins.icon}</span>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 700, color: ins.color, marginBottom: 4 }}>{ins.title}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>{ins.desc}</div>
+        {DAYS.map(day => (
+          <div key={day} style={{ display:'flex', alignItems:'center', gap:4, marginBottom:3 }}>
+            <div style={{ fontSize:9, color:'#444', width:30, textAlign:'right', flexShrink:0 }}>{day}</div>
+            <div style={{ flex:1, display:'grid', gridTemplateColumns:'repeat(24,1fr)', gap:2 }}>
+              {HOURS.map(h => {
+                const c = cell(day,h)
+                const v = c?.risk||0
+                const isH = hov?.day===day&&hov?.hour===h
+                return (
+                  <div key={h}
+                    onMouseEnter={()=>setHov({day,hour:h,risk:v})}
+                    onMouseLeave={()=>setHov(null)}
+                    onTouchStart={()=>setHov({day,hour:h,risk:v})}
+                    style={{
+                      height:18, borderRadius:3,
+                      background: rCol(v),
+                      border: isH?'1px solid #fff':'1px solid transparent',
+                      transform: isH?'scale(1.3)':'scale(1)',
+                      transition:'transform 0.1s',
+                      cursor:'default', zIndex: isH?10:1, position:'relative',
+                    }}
+                  />
+                )
+              })}
+            </div>
           </div>
         ))}
+
+        {/* Legend */}
+        <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:12, marginLeft:34 }}>
+          <span style={{ fontSize:10, color:'#444' }}>Low</span>
+          {[0.05,0.2,0.4,0.65,0.9].map(v => (
+            <div key={v} style={{ width:20, height:10, borderRadius:2, background:rCol(v) }}/>
+          ))}
+          <span style={{ fontSize:10, color:'#444' }}>High</span>
+        </div>
       </div>
+
+      {/* Tooltip */}
+      {hov && (
+        <div style={{ background:'#0A0A0A', border:'0.5px solid #1A1A1A', borderRadius:14, padding:'14px 16px', marginBottom:12 }}>
+          <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:16, fontWeight:700 }}>{hov.day} · {hov.hour}:00</div>
+          <div style={{ display:'flex', gap:16, marginTop:8 }}>
+            <div>
+              <div style={{ fontSize:11, color:'#555' }}>Risk Score</div>
+              <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:22, fontWeight:700, color: hov.risk>=0.7?'#FF4444':hov.risk>=0.4?'#FFB800':'#00E676' }}>
+                {Math.round(hov.risk*100)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize:11, color:'#555' }}>Zone</div>
+              <div style={{ fontSize:14, fontWeight:600, marginTop:4, color:'#ccc' }}>
+                {hov.risk>=0.7?'⚠️ Danger':hov.risk>=0.4?'⚡ Caution':'✓ Safe'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Insights */}
+      <div className="label-green" style={{ marginBottom:12 }}>KEY PATTERNS</div>
+      {[
+        { emoji:'🌙', t:'Peak risk: 10 PM – 1 AM', d:'Your highest impulse window every night', col:'#FF4444' },
+        { emoji:'☀️', t:'Safest: 7 AM – 11 AM', d:'Morning purchases are 3× more considered', col:'#00E676' },
+        { emoji:'📱', t:'Social → Shopping pattern', d:'Instagram to Meesho in 87% of cases', col:'#FFB800' },
+        { emoji:'📅', t:'Riskiest day: Saturday night', d:'Score peaks at 94 after 10 PM weekends', col:'#4488FF' },
+      ].map((ins,i) => (
+        <div key={i} style={{
+          display:'flex', gap:14, padding:'16px', borderRadius:16, marginBottom:10,
+          background:'#0A0A0A', border:`0.5px solid ${ins.col}20`,
+        }}>
+          <span style={{ fontSize:24 }}>{ins.emoji}</span>
+          <div>
+            <div style={{ fontSize:14, fontWeight:700, color:ins.col, marginBottom:2 }}>{ins.t}</div>
+            <div style={{ fontSize:13, color:'#555' }}>{ins.d}</div>
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

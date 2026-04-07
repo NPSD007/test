@@ -2,111 +2,49 @@ import React, { useEffect, useState } from 'react'
 
 export default function RiskGauge({ score }) {
   const [displayed, setDisplayed] = useState(0)
-
   useEffect(() => {
-    let start = 0
-    const step = () => {
-      start += 2
-      if (start >= score) { setDisplayed(score); return }
-      setDisplayed(start)
-      requestAnimationFrame(step)
-    }
-    const raf = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(raf)
+    let v = 0
+    const step = () => { v = Math.min(v + 2, score); setDisplayed(v); if (v < score) requestAnimationFrame(step) }
+    const r = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(r)
   }, [score])
 
-  const level = score >= 70 ? 'HIGH' : score >= 40 ? 'MEDIUM' : 'LOW'
-  const color = score >= 70 ? 'var(--rose)' : score >= 40 ? 'var(--amber)' : 'var(--sage)'
-  const glowColor = score >= 70 ? 'rgba(244,63,94,0.4)' : score >= 40 ? 'rgba(245,158,11,0.4)' : 'rgba(52,211,153,0.3)'
-
-  // Arc math
-  const R = 80
-  const cx = 110, cy = 110
-  const startAngle = -210
-  const sweepDeg = 240
-  const pct = displayed / 100
-  const toRad = d => (d * Math.PI) / 180
-  const arcX = (ang) => cx + R * Math.cos(toRad(ang))
-  const arcY = (ang) => cy + R * Math.sin(toRad(ang))
-
-  const describeArc = (from, to) => {
-    const s = { x: arcX(from), y: arcY(from) }
-    const e = { x: arcX(to), y: arcY(to) }
-    const large = (to - from) > 180 ? 1 : 0
-    return `M ${s.x} ${s.y} A ${R} ${R} 0 ${large} 1 ${e.x} ${e.y}`
+  const color = score >= 70 ? '#FF4444' : score >= 40 ? '#FFB800' : '#00E676'
+  const label = score >= 70 ? 'HIGH RISK' : score >= 40 ? 'MEDIUM' : 'SAFE'
+  const R = 72, cx = 90, cy = 90
+  const startA = -220, sweepA = 260
+  const toRad = d => d * Math.PI / 180
+  const ax = a => cx + R * Math.cos(toRad(a))
+  const ay = a => cy + R * Math.sin(toRad(a))
+  const arc = (f, t) => {
+    const lg = (t - f) > 180 ? 1 : 0
+    return `M ${ax(f)} ${ay(f)} A ${R} ${R} 0 ${lg} 1 ${ax(t)} ${ay(t)}`
   }
-
-  const endAngle = startAngle + sweepDeg
-  const fillEnd = startAngle + sweepDeg * pct
-
-  // Tick marks
-  const ticks = [0, 25, 50, 75, 100].map(v => {
-    const ang = startAngle + (sweepDeg * v / 100)
-    return {
-      x1: cx + (R - 8) * Math.cos(toRad(ang)),
-      y1: cy + (R - 8) * Math.sin(toRad(ang)),
-      x2: cx + (R + 2) * Math.cos(toRad(ang)),
-      y2: cy + (R + 2) * Math.sin(toRad(ang)),
-      label: v,
-      lx: cx + (R + 18) * Math.cos(toRad(ang)),
-      ly: cy + (R + 18) * Math.sin(toRad(ang)),
-    }
-  })
+  const endA = startA + sweepA
+  const fillA = startA + sweepA * (displayed / 100)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <svg width={220} height={180} viewBox="0 0 220 180">
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+      <svg width={180} height={160} viewBox="0 0 180 160">
         <defs>
-          <linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#34d399" />
-            <stop offset="50%" stopColor="#f59e0b" />
-            <stop offset="100%" stopColor="#f43f5e" />
-          </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
+          <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         </defs>
-
         {/* Track */}
-        <path d={describeArc(startAngle, endAngle)} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={12} strokeLinecap="round" />
-
+        <path d={arc(startA, endA)} fill="none" stroke="#1A1A1A" strokeWidth={14} strokeLinecap="round"/>
         {/* Fill */}
-        {displayed > 0 && (
-          <path d={describeArc(startAngle, fillEnd)} fill="none" stroke={color} strokeWidth={12} strokeLinecap="round"
-            style={{ filter: `drop-shadow(0 0 8px ${glowColor})`, transition: 'stroke 0.4s ease' }} />
-        )}
-
-        {/* Ticks */}
-        {ticks.map((t, i) => (
-          <g key={i}>
-            <line x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} stroke="rgba(255,255,255,0.2)" strokeWidth={1.5} />
-            <text x={t.lx} y={t.ly} textAnchor="middle" dominantBaseline="central"
-              fontSize={9} fill="rgba(255,255,255,0.3)" fontFamily="var(--font-mono)">{t.label}</text>
-          </g>
-        ))}
-
-        {/* Center score */}
-        <text x={cx} y={cy - 10} textAnchor="middle" fontSize={48} fontWeight={700}
-          fontFamily="var(--font-display)" fill={color}
-          style={{ filter: `drop-shadow(0 0 12px ${glowColor})` }}>
-          {displayed}
-        </text>
-        <text x={cx} y={cy + 22} textAnchor="middle" fontSize={11}
-          fontFamily="var(--font-mono)" fill="rgba(255,255,255,0.35)" letterSpacing="3">
-          RISK SCORE
-        </text>
+        {displayed > 0 && <path d={arc(startA, fillA)} fill="none" stroke={color} strokeWidth={14} strokeLinecap="round" filter="url(#glow)" style={{transition:'stroke 0.4s'}}/>}
+        {/* Score */}
+        <text x={cx} y={cy-4} textAnchor="middle" fontSize={44} fontWeight={800} fontFamily="'Space Grotesk',sans-serif" fill={color}>{displayed}</text>
+        <text x={cx} y={cy+18} textAnchor="middle" fontSize={10} fontFamily="'Space Grotesk',sans-serif" fill="#444" letterSpacing="3">/100</text>
       </svg>
-
       <div style={{
-        display: 'inline-flex', alignItems: 'center', gap: 8,
-        padding: '6px 18px', borderRadius: 100,
-        background: score >= 70 ? 'var(--rose-dim)' : score >= 40 ? 'var(--amber-dim)' : 'var(--sage-dim)',
+        display:'inline-flex', alignItems:'center', gap:7,
+        padding:'6px 18px', borderRadius:100, marginTop:-8,
+        background: score>=70 ? 'rgba(255,68,68,0.1)' : score>=40 ? 'rgba(255,184,0,0.1)' : 'rgba(0,230,118,0.1)',
         border: `0.5px solid ${color}40`,
-        marginTop: -16,
       }}>
-        <span style={{ width: 7, height: 7, borderRadius: '50%', background: color, boxShadow: `0 0 6px ${color}`, display: 'inline-block' }} />
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color, letterSpacing: '0.1em' }}>{level} IMPULSE RISK</span>
+        <span style={{ width:7, height:7, borderRadius:'50%', background:color, boxShadow:`0 0 8px ${color}`, display:'inline-block' }}/>
+        <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:12, color, letterSpacing:'0.1em', fontWeight:700 }}>{label}</span>
       </div>
     </div>
   )
